@@ -1,32 +1,44 @@
 [
-    {
-        "name": "Beer",
-        "price": 1500,
-        "desc": "Average craft beer",
-        "abv": 4.5
-    },
-    {
-        "name": "Vodka",
-        "price": 6000,
-        "desc": "Spirit of Russia",
-        "abv": 40
-    },
-    {
-        "name": "Whiskey",
-        "price": 5000,
-        "desc": "Best taste with a cigar",
-        "abv": 42
-    },
-    {
-        "name": "Gin",
-        "price": 5500,
-        "desc": "Average Hugarian beer",
-        "abv": 37.5
-    },
-    {
-        "name": "Pálinka",
-        "price": 8500,
-        "desc": "Only for the braves",
-        "abv": 52
-    }
+  {
+    "name": "Beer",
+    "price": 1500,
+    "desc": "Average craft beer",
+    "abv": 4.5
+  },
+  {
+    "name": "Vodka",
+    "price": 6000,
+    "desc": "Spirit of Russia",
+    "abv": 40
+  },
+  {
+    "name": "Whiskey",
+    "price": 5000,
+    "desc": "Tastes best with a cigar",
+    "abv": 42
+  },
+  {
+    "name": "Gin",
+    "price": 5500,
+    "desc": "Please drink with tonic",
+    "abv": 37.5
+  },
+  {
+    "name": "Pálinka",
+    "price": 8500,
+    "desc": "Only for the braves",
+    "abv": 62
+  },
+  {
+    "name": "Red Wine",
+    "abv": 12,
+    "desc": "placeholder",
+    "price": 1239
+  },
+  {
+    "name": "White Wine",
+    "desc": "placeholder",
+    "abv": 11.2,
+    "price": 1599
+  }
 ]

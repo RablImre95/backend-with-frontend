@@ -27,6 +27,31 @@ app.get('/', (req, res) => {
 })
 })
 
+app.post('/data/new', (req, res) => {
+  console.log(req.body)
+
+  fs.readFile(`${__dirname}/data/drinks.json`, (err, data) => {
+    if (err) {
+      console.log("error at reading the file", err)
+      res.json("error at reading the file")
+    } else {
+      const jsonData = JSON.parse(data)
+
+      jsonData.push(req.body)
+
+      fs.writeFile(`${__dirname}/data/drinks.json`, JSON.stringify(jsonData, null, 2), (err) => {
+        if (err) {
+          console.log("error at writing the file", err)
+          res.status(500).json("error at writing the file")
+        } else {
+          res.json("success")
+        }
+      })
+  }
+})
+
+})
+
   app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
   })
