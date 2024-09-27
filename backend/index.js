@@ -82,6 +82,25 @@ app.post('/data/new', (req, res) => {
   });
 });
 
+
+app.delete('/data/delete/:id', (req,res) => {
+  console.log(req.params.id);
+
+  fs.readFile(`${__dirname}/data/drinks.json`, (err, data) => {
+    if (err) {
+      console.log("error at reading file", err);
+      res.status(500).json("error at reading file");
+    } else {
+    const jsonData = JSON.parse(data);
+    const filteredArray = jsonDta.filter(obj => obj.id !== searchId);
+    console.log("delete",filteredArray)
+
+    res.json("success");
+    }
+})
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
+
+})
