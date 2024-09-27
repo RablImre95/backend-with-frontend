@@ -1,11 +1,14 @@
 import express from 'express';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
+import { readFile, writeFile } from 'fs';
+import { readFile as readFilePromise } from 'fs/promises';
 
 const app = express();
-const port = 3000;
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const PORT = 3000;
+const DRINKS_URL = `${__dirname}/data/drinks.json`;
 
 const generateId = () => {
   let newId = "";
@@ -17,90 +20,73 @@ const generateId = () => {
   return newId;
 }
 
-const isUnique = (arrayOfIds, newId) => {
-  const result = arrayOfIds.find(id => id === newId);
-  if (result === undefined) {
-    return true;
-  } else {
-    return false;
+const generateUniqueId = (idsArray, generate) => {
+  let newId = generate();
+
+  // while the generated id can be found in the existing ids, generate a new one
+  while (idsArray.find(id => id === newId)) {
+    newId = generate();
+  }
+
+  return newId;
+}
+
+async function readAndParseFile(fileUrl) {
+  try {
+    const data = await readFilePromise(fileUrl, 'utf8');
+    const jsonData = JSON.parse(data);
+
+    return jsonData;
+  } catch (err) {
+    console.error('Error reading or parsing the JSON file:', err);
   }
 }
 
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.sendFile(join(__dirname, '/../frontend/index.html'));
-});
+app.get('/', (req, res) => res.sendFile(join(__dirname, '/../frontend/index.html')));
 
 app.use('/public', express.static(join(__dirname, '/../frontend/static')));
 
-app.get('/data', (req, res) => {
-  fs.readFile(`${__dirname}/data/drinks.json`, (err, data) => {
-    if (err) {
-      console.log("error at reading file");
-      res.json("error at reading file");
-    } else {
-      const jsonData = JSON.parse(data);
-      res.json(jsonData);
-    }
-  });
+app.get('/data', async (req, res) => {
+  const fileData = await readAndParseFile(DRINKS_URL);
+  res.json(fileData);
 });
 
-app.post('/data/new', (req, res) => {
-  console.log(req.body);
+app.post('/data/new', async (req, res) => {
+  const fileData = await readAndParseFile(DRINKS_URL);
 
-  fs.readFile(`${__dirname}/data/drinks.json`, (err, data) => {
-    if (err) {
-      console.log("error at reading file", err);
-      res.status(500).json("error at reading file");
-    } else {
-      const jsonData = JSON.parse(data);
-      const ids = jsonData.map(drinkObj => drinkObj.id)
-      
-      let newId = generateId();
+  const ids = fileData.map(drinkObj => drinkObj.id);
+  const newId = generateUniqueId(ids, generateId);
 
-      while (isUnique(ids, newId) === false) {
-        newId = generateId();
-      }
+  // create a new object, from req.body and a new id key
+  const newDrinkObj = { ...req.body, id: newId };
 
-      //itt már tuti egyedi a newId
+  fileData.push(newDrinkObj);
 
-      const newDrinkObj = req.body;
-      newDrinkObj.id = newId;
-
-      jsonData.push(newDrinkObj);
-
-      try {
-        fs.writeFile(`${__dirname}/data/drinks.json`, JSON.stringify(jsonData, null, 2), () => {
-          res.json(newDrinkObj.id);
-        })
-      } catch (err) {
-        console.log("error at writing file", err);
-        res.status(500).json("error at writing file")
-      }
-    }
-  });
+  try {
+    writeFile(DRINKS_URL, JSON.stringify(fileData, null, 2), () => res.json(newDrinkObj.id));
+  } catch (err) {
+    console.log("error at writing file", err);
+    res.status(500).json("error at writing file");
+  }
 });
 
+app.delete('/data/delete/:id', async (req, res) => {
+  const deleteId = req.params.id;
 
-app.delete('/data/delete/:id', (req,res) => {
-  console.log(req.params.id);
+  const fileData = await readAndParseFile(DRINKS_URL);
 
-  fs.readFile(`${__dirname}/data/drinks.json`, (err, data) => {
-    if (err) {
-      console.log("error at reading file", err);
-      res.status(500).json("error at reading file");
-    } else {
-    const jsonData = JSON.parse(data);
-    const filteredArray = jsonDta.filter(obj => obj.id !== searchId);
-    console.log("delete",filteredArray)
+  // if deleteId is in the fileData, delete the associated object
+  if (fileData.find(obj => obj.id === deleteId)) {
 
-    res.json("success");
-    }
-})
+    // filter all the objects from the fileData, that has the same id as deleteId (should be only one match)
+    const filteredArray = fileData.filter(obj => obj.id !== deleteId);
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+    writeFile(DRINKS_URL, JSON.stringify(filteredArray, null, 2), () => res.json(deleteId));
+  } else { // else return that deleteId is not found in the fileData
+    res.status(404).json(`${deleteId} is not found`);
+  }
 });
 
-})
+app.listen(PORT, () => console.log(`Example app listening on port ${PORT}`));

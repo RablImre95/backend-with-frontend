@@ -90,5 +90,3 @@ const recreateDom = (rootElement) => {
 const init = () => recreateDom(rootElement);
 
 init();
-
-// crate init fn
