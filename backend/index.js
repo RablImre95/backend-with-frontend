@@ -3,6 +3,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { readFile, writeFile } from 'fs';
 import { readFile as readFilePromise } from 'fs/promises';
+import { serialize } from 'v8';
 
 const app = express();
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -71,6 +72,46 @@ app.post('/data/new', async (req, res) => {
     res.status(500).json("error at writing file");
   }
 });
+
+app.put('/data/put/:id', async (req,res) => {
+  const searchId = req.params.id
+ 
+  const fileData = await readAndParseFile(DRINKS_URL)
+
+  const found = fileData.find(obj => obj.id === searchId)
+
+  if (!found) {
+    return res.status(404).json(`No object found with ID ${searchId}`)
+  }
+
+  // const objectKeys = Object.keys(req.body)
+  // objectKeys.forEach(key => found[key] = req.body[key])
+
+  const filteredFileData = fileData.filter(obj => obj.id !== searchId)
+
+  const updatedDrink = {...req.body, id: searchId}
+  filteredFileData.push(updatedDrink)
+
+ writeFile(DRINKS_URL, JSON.stringify(filteredFileData,null,2), () => res.json("ok"))
+})
+
+app.patch('/data/patch/:id',async (req,res) => {
+  const searchId = req.params.id
+ 
+  const fileData = await readAndParseFile(DRINKS_URL)
+
+  const found = fileData.find(obj => obj.id === searchId)
+
+  if (!found) {
+    return res.status(404).json(`No object found with ID ${searchId}`)
+  }
+
+  const objectKeys = Object.keys(req.body)
+  objectKeys.forEach(key => found[key] = req.body[key])
+
+ writeFile(DRINKS_URL, JSON.stringify(fileData,null,2), () => res.json("ok"))
+})
+
 
 app.delete('/data/delete/:id', async (req, res) => {
   const deleteId = req.params.id;
